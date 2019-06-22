@@ -1,0 +1,14 @@
+{
+    "name": "greabock/populator",
+    "description": "eloquent model populator",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Greabock",
+            "email": "greabock@gmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {}
+}
