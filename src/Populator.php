@@ -3,6 +3,7 @@
 namespace Greabock\Populator;
 
 
+use Exception;
 use Greabock\Populator\Relation\BelongsToManyPopulator;
 use Greabock\Populator\Relation\BelongsToPopulator;
 use Greabock\Populator\Relation\HasManyPopulator;
@@ -31,6 +32,15 @@ class Populator
      */
     private $uow;
 
+    /**
+     * Populator constructor.
+     * @param Resolver $resolver
+     * @param UnitOfWork $uow
+     * @param HasManyPopulator $hasManyPopulator
+     * @param BelongsToManyPopulator $belongsToManyPopulator
+     * @param BelongsToPopulator $belongsToPopulator
+     * @param HasOnePopulator $populator
+     */
     public function __construct(
         Resolver $resolver,
         UnitOfWork $uow,
@@ -54,6 +64,11 @@ class Populator
         }
     }
 
+    /**
+     * @param $model
+     * @param array $data
+     * @return Model|null
+     */
     public function populate($model, array $data)
     {
         assert(class_exists($model) || $model instanceof Model);
@@ -74,11 +89,28 @@ class Populator
         return $model;
     }
 
+    /**
+     * @throws Exception
+     */
+    public function flush()
+    {
+        $this->uow->flush();
+    }
+
+    /**
+     * @param $model
+     * @param $data
+     * @return Model
+     */
     public function resolveModel($model, $data)
     {
         return $this->resolver->resolve($model, $data);
     }
 
+    /**
+     * @param Model $model
+     * @param array $data
+     */
     protected function fillRelations(Model $model, array $data)
     {
         $relations = Arr::except($data, $model->getFillable());
@@ -90,6 +122,11 @@ class Populator
         }
     }
 
+    /**
+     * @param Model $model
+     * @param string $relationName
+     * @param array $relationData
+     */
     protected function populateRelation(Model $model, string $relationName, array $relationData)
     {
 
