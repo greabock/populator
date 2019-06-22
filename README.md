@@ -20,7 +20,7 @@ class UserController
      * @param $id
      * @param Request $request
      * @param Populator $populator
-     * @return User|null
+     * @return User
      * @throws Exception
      */
     public function put($id, Request $request, Populator $populator): User
