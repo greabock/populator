@@ -5,6 +5,7 @@ namespace Greabock\Populator\Relation;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Str;
 
 class BelongsToManyPopulator extends RelationPopulator
 {
@@ -12,8 +13,7 @@ class BelongsToManyPopulator extends RelationPopulator
     {
         /** @var BelongsToMany $relation */
         $relation = $model->{$relationName}();
-
-        $relatedModels = collect($data)->map(function ($relatedData) use ($relation, $model) {
+        $relatedModels = $relation->getQuery()->getModel()->newCollection()->concat(array_map(function ($relatedData) use ($relation, $model) {
             $relatedModel = $this->resolver->resolve($relation->getRelated(), $relatedData);
             $relatedModel->setRelation('pivot', $relation->newPivot(
                 array_merge(Arr::get($relatedData, 'pivot', []), [
@@ -24,18 +24,23 @@ class BelongsToManyPopulator extends RelationPopulator
             ));
 
             return $relatedModel;
-        });
+        }, $data));
+
 
         $relatedModels->each(function (Model $data) {
             $this->uow->persist($data);
         });
 
-        $this->uow->execute(function () use ($relation, $relatedModels) {
-            $relation->sync($relatedModels->mapWithKeys(function (Model $model) {
+        $this->uow->execute(function () use ($relation, $relatedModels, $model, $relationName) {
+            $relation->sync($relatedModels->mapWithKeys(function (Model $relatedModel) {
                 return [
-                    $model->getKey() => $model->getRelation('pivot')->toArray(),
+                    $relatedModel->getKey() => $relatedModel->getRelation('pivot')->toArray(),
                 ];
             }));
+            $relatedModels->each(function (Model $model) {
+                $model->refresh();
+            });
+            $model->setRelation(Str::snake($relationName), $relatedModels);
         });
     }
 }
