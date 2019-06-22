@@ -5,7 +5,6 @@ namespace Greabock\Populator\Relation;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Str;
 
 class HasManyPopulator extends RelationPopulator
 {
@@ -22,10 +21,9 @@ class HasManyPopulator extends RelationPopulator
         /** @var HasMany $relation */
         $relation = $model->{$relationName}();
 
-        $relatedModels = $relation->getQuery()->getModel()->newCollection()
-            ->concat(array_map(function (array $modelData) use ($relation) {
-                return $this->populator->populate(get_class($relation->getRelated()), $modelData);
-            }, $data));
+        $relatedModels = collect(array_map(function (array $modelData) use ($relation) {
+            return $this->populator->populate(get_class($relation->getRelated()), $modelData);
+        }, $data));
 
         $existsModels->filter(function (Model $existsModel) use ($relatedModels) {
             return $relatedModels->filter(function (Model $relatedModel) use ($existsModel) {
@@ -37,13 +35,11 @@ class HasManyPopulator extends RelationPopulator
         });
 
         $relatedModels->each(function (Model $related) use ($relation, $model, $relationName) {
-
             $this->setRelationField($model, $relation, $related);
             $this->uow->persist($related);
-        });
-
-        $this->uow->execute(function () use ($model, $relatedModels, $relationName) {
-            $model->setRelation(Str::snake($relationName), $relatedModels);
+            $this->uow->execute(function () use ($model, $relationName) {
+                $model->load($relationName);
+            });
         });
     }
 
