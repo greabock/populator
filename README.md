@@ -1,4 +1,4 @@
-# populator
+# Populator
 
 
 ## Usage
