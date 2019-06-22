@@ -34,9 +34,12 @@ class HasManyPopulator extends RelationPopulator
             // TODO: ON DETACH DESTROY, ON DETACH SET NULL ?
         });
 
-        $relatedModels->each(function (Model $related) use ($relation, $model) {
+        $relatedModels->each(function (Model $related) use ($relation, $model, $relationName) {
             $this->setRelationField($model, $relation, $related);
             $this->uow->persist($related);
+            $this->uow->execute(function () use ($model, $relationName) {
+                $model->load($relationName);
+            });
         });
     }
 

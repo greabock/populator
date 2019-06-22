@@ -67,9 +67,11 @@ class Resolver
     private function findInDataBase(Model $model, $data)
     {
         if (isset($data[$model->getKeyName()])) {
-            $result = $model->newQuery()->find($data[$model->getKeyName()]);
-            $this->identityMap->remember($result);
-            return $result;
+            $resultModel = $model->newQuery()->find($data[$model->getKeyName()]);
+            if ($resultModel) {
+                $this->identityMap->remember($resultModel);
+                return $resultModel;
+            }
         }
 
         return null;
