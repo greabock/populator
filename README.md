@@ -1,9 +1,9 @@
 # populator
 
 
-#usage
+## Usage
 
-```
+```php
 <?php
 
 namespace App\Http\Controllers;
