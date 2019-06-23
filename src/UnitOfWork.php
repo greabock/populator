@@ -58,7 +58,7 @@ class UnitOfWork
         try {
             $this->doPersist();
             $this->doDestroy();
-            $this->doOnflush();
+            $this->doOnFlush();
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
@@ -92,7 +92,7 @@ class UnitOfWork
         $this->onFlushInstructions[] = $fn;
     }
 
-    private function doOnflush(): void
+    private function doOnFlush(): void
     {
         foreach ($this->onFlushInstructions as $instruction) {
             $instruction();
