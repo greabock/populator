@@ -68,7 +68,7 @@ class UnitOfWork
 
     protected function doPersist(): void
     {
-        foreach ($this->toPersist as $model) {
+        foreach (array_reverse($this->toPersist) as $model) {
             if ($model->isDirty() || !$model->exists) {
                 $model->save();
             }
