@@ -27,8 +27,6 @@ class HasOnePopulator extends RelationPopulator
             $this->uow->persist($relatedModel);
         }
 
-        $this->uow->execute(function () use ($model, $relationName, $relatedModel) {
-            $model->setRelation(Str::snake($relationName), $relatedModel);
-        });
+        $model->setRelation(Str::snake($relationName), $relatedModel);
     }
 }

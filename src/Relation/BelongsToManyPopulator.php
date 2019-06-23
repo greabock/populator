@@ -32,12 +32,12 @@ class BelongsToManyPopulator extends RelationPopulator
                     return $relatedModel;
                 }, $data)
             );
-        
+
         $relatedModels->each(function (Model $data): void {
             $this->uow->persist($data);
         });
 
-        $this->uow->execute(function () use ($relation, $relatedModels, $model, $relationName) {
+        $this->uow->onFlush(function () use ($relation, $relatedModels, $model, $relationName) {
             $relation->sync($relatedModels->mapWithKeys(function (Model $relatedModel) {
                 return [
                     $relatedModel->getKey() => $relatedModel->getRelation('pivot')->toArray(),
@@ -46,7 +46,8 @@ class BelongsToManyPopulator extends RelationPopulator
             $relatedModels->each(function (Model $model): void {
                 $model->refresh();
             });
-            $model->setRelation(Str::snake($relationName), $relatedModels);
         });
+
+        $model->setRelation(Str::snake($relationName), $relatedModels);
     }
 }

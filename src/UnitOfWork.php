@@ -20,7 +20,7 @@ class UnitOfWork
     /**
      * @var callable[]|array
      */
-    protected $instructions = [];
+    protected $onFlushInstructions = [];
 
     /**
      * @var IdentityMap
@@ -58,7 +58,7 @@ class UnitOfWork
         try {
             $this->doPersist();
             $this->doDestroy();
-            $this->doExecute();
+            $this->doOnflush();
             DB::commit();
         } catch (\Exception $e) {
             DB::rollBack();
@@ -87,15 +87,17 @@ class UnitOfWork
         $this->toPersist = [];
     }
 
-    public function execute(callable $fn): void
+    public function onFlush(callable $fn): void
     {
-        $this->instructions[] = $fn;
+        $this->onFlushInstructions[] = $fn;
     }
 
-    private function doExecute(): void
+    private function doOnflush(): void
     {
-        foreach ($this->instructions as $instruction) {
+        foreach ($this->onFlushInstructions as $instruction) {
             $instruction();
         }
+
+        $this->onFlushInstructions = [];
     }
 }

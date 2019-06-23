@@ -40,9 +40,7 @@ class HasManyPopulator extends RelationPopulator
             $this->uow->persist($related);
         });
 
-        $this->uow->execute(function () use ($model, $relatedModels, $relationName) {
-            $model->setRelation(Str::snake($relationName), $relatedModels);
-        });
+        $model->setRelation(Str::snake($relationName), $relatedModels);
     }
 
     protected function setRelationField(Model $model, HasMany $relation, Model $related): void

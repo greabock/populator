@@ -18,9 +18,7 @@ class BelongsToPopulator extends RelationPopulator
 
         $this->fillRelationField($model, $relation, $related);
 
-        $this->uow->execute(function () use ($model, $related, $relationName) {
-            $model->setRelation(Str::snake($relationName), $related);
-        });
+        $model->setRelation(Str::snake($relationName), $related);
     }
 
     protected function fillRelationField(Model $model, BelongsTo $relation, ?Model $related): void
