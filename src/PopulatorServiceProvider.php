@@ -2,7 +2,6 @@
 
 namespace Greabock\Populator;
 
-
 use Illuminate\Support\ServiceProvider;
 
 class PopulatorServiceProvider extends ServiceProvider
@@ -12,10 +11,5 @@ class PopulatorServiceProvider extends ServiceProvider
         $this->app->singleton(UnitOfWork::class);
         $this->app->singleton(IdentityMap::class);
         $this->app->singleton(Populator::class);
-    }
-
-    public function boot()
-    {
-
     }
 }

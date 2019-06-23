@@ -37,46 +37,27 @@ class Populator
      * Populator constructor.
      * @param Resolver $resolver
      * @param UnitOfWork $uow
-     * @param HasManyPopulator $hasManyPopulator
-     * @param BelongsToManyPopulator $belongsToManyPopulator
-     * @param BelongsToPopulator $belongsToPopulator
-     * @param HasOnePopulator $populator
      */
-    public function __construct(
-        Resolver $resolver,
-        UnitOfWork $uow,
-        HasManyPopulator $hasManyPopulator,
-        BelongsToManyPopulator $belongsToManyPopulator,
-        BelongsToPopulator $belongsToPopulator,
-        HasOnePopulator $populator
-    )
+    public function __construct(Resolver $resolver, UnitOfWork $uow)
     {
         $this->resolver = $resolver;
-        $this->relationPopulators = [
-            HasMany::class       => $hasManyPopulator,
-            BelongsToMany::class => $belongsToManyPopulator,
-            BelongsTo::class     => $belongsToPopulator,
-            HasOne::class        => $populator,
-        ];
         $this->uow = $uow;
-
-        foreach ($this->relationPopulators as $relationPopulator) {
-            $relationPopulator->setModelPopulator($this);
-        }
+        $this->initRelationPopulators();
     }
 
     /**
-     * @param $model
-     * @param array $data
+     * @param mixed|Model|string $model
+     * @param array|null $data
      * @return Model|null
      */
-    public function populate($model, array $data)
+    public function populate($model, ?array $data): ?Model
     {
-        assert(class_exists($model) || $model instanceof Model);
+        assert(is_subclass_of($model, Model::class));
 
-        if (!$data) {
+        if (is_null($data)) {
             return null;
         }
+
 
         if (is_string($model)) {
             $model = $this->resolveModel($model, $data);
@@ -93,7 +74,7 @@ class Populator
     /**
      * @throws Exception
      */
-    public function flush()
+    public function flush(): void
     {
         $this->uow->flush();
     }
@@ -103,7 +84,7 @@ class Populator
      * @param $data
      * @return Model
      */
-    public function resolveModel($model, $data)
+    public function resolveModel(string $model, array $data): Model
     {
         return $this->resolver->resolve($model, $data);
     }
@@ -112,7 +93,7 @@ class Populator
      * @param Model $model
      * @param array $data
      */
-    protected function fillRelations(Model $model, array $data)
+    protected function fillRelations(Model $model, array $data): void
     {
         $relations = Arr::except($data, $model->getFillable());
 
@@ -131,9 +112,8 @@ class Populator
      * @param string $relationName
      * @param array $relationData
      */
-    protected function populateRelation(Model $model, string $relationName, array $relationData)
+    protected function populateRelation(Model $model, string $relationName, array $relationData): void
     {
-
         $relation = $model->{$relationName}();
         foreach ($this->relationPopulators as $class => $populator) {
             if ($relation instanceof $class) {
@@ -141,5 +121,15 @@ class Populator
                 break;
             }
         }
+    }
+
+    private function initRelationPopulators(): void
+    {
+        $this->relationPopulators = [
+            HasMany::class       => new HasManyPopulator($this->resolver, $this->uow, $this),
+            BelongsToMany::class => new BelongsToManyPopulator($this->resolver, $this->uow, $this),
+            BelongsTo::class     => new BelongsToPopulator($this->resolver, $this->uow, $this),
+            HasOne::class        => new HasOnePopulator($this->resolver, $this->uow, $this),
+        ];
     }
 }

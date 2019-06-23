@@ -5,7 +5,6 @@ namespace Greabock\Populator;
 
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Support\Collection;
 use Ramsey\Uuid\Uuid;
 
@@ -17,12 +16,12 @@ class IdentityMap extends Collection
         parent::__construct();
     }
 
-    public function resolveHashName(Model $model, $data = null)
+    public function resolveHashName(Model $model, ?array $data = null): string
     {
         return get_class($model) . '#' . $this->resolveKey($model, $data);
     }
 
-    protected function resolveKey(Model $model, $data = null)
+    protected function resolveKey(Model $model, ?array $data = null): string
     {
         if ($data && isset($data[$model->getKeyName()])) {
             return $data[$model->getKeyName()];
@@ -35,11 +34,16 @@ class IdentityMap extends Collection
         return $model->getKey();
     }
 
-    protected function generateKey()
+    protected function generateKey(): string
     {
         return Uuid::uuid4()->toString();
     }
 
+    /**
+     * @param Model $model
+     * @param string $relationName
+     * @return Model|EloquentCollection|Model[]
+     */
     public function loadRelation(Model $model, string $relationName)
     {
         $model->load($relationName);
@@ -54,12 +58,11 @@ class IdentityMap extends Collection
         return $model->{$relationName};
     }
 
-    public function remember(Model $model)
+    public function remember(Model $model): void
     {
         $this[$this->resolveHashName($model)] = $model;
-
         foreach ($model->getRelations() as $relation) {
-            if ($relation instanceof \Illuminate\Database\Eloquent\Collection) {
+            if ($relation instanceof EloquentCollection) {
                 foreach ($relation as $relationModel) {
                     $this->remember($relationModel);
                 }

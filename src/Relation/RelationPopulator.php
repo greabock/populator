@@ -19,21 +19,18 @@ abstract class RelationPopulator
      */
     protected $uow;
 
-    public function __construct(Resolver $resolver, UnitOfWork $uow)
-    {
-        $this->resolver = $resolver;
-        $this->uow = $uow;
-    }
-
     /**
      * @var Populator
      */
     protected $populator;
 
-    abstract function populate(Model $model, string $relationName, ?array $data);
-
-    public function setModelPopulator(Populator $populator)
+    public function __construct(Resolver $resolver, UnitOfWork $uow, Populator $populator)
     {
+        $this->resolver = $resolver;
+        $this->uow = $uow;
         $this->populator = $populator;
     }
+
+
+    abstract function populate(Model $model, string $relationName, ?array $data): void;
 }

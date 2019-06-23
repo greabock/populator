@@ -9,12 +9,12 @@ use Illuminate\Support\Str;
 class BelongsToPopulator extends RelationPopulator
 {
 
-    function populate(Model $model, string $relationName, ?array $data)
+    function populate(Model $model, string $relationName, ?array $data): void
     {
         /** @var BelongsTo $relation */
         $relation = $model->{$relationName}();
 
-        $related = $this->resolver->resolve($relation->getRelated(), $data);
+        $related = $data ? $this->resolver->resolve($relation->getRelated(), $data) : null;
 
         $this->fillRelationField($model, $relation, $related);
 
@@ -23,8 +23,8 @@ class BelongsToPopulator extends RelationPopulator
         });
     }
 
-    protected function fillRelationField(Model $model, BelongsTo $relation, Model $related)
+    protected function fillRelationField(Model $model, BelongsTo $relation, ?Model $related): void
     {
-        $model->{$relation->getForeignKeyName()} = $related->{$relation->getOwnerKeyName()};
+        $model->{$relation->getForeignKeyName()} = $related ? $related->{$relation->getOwnerKeyName()} : null;
     }
 }

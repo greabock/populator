@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 class HasManyPopulator extends RelationPopulator
 {
 
-    public function populate(Model $model, string $relationName, ?array $data)
+    public function populate(Model $model, string $relationName, ?array $data): void
     {
         if (!$data) {
             return;
@@ -27,17 +27,15 @@ class HasManyPopulator extends RelationPopulator
                 return $this->populator->populate(get_class($relation->getRelated()), $modelData);
             }, $data));
 
-        $existsModels->filter(function (Model $existsModel) use ($relatedModels) {
-            return $relatedModels->filter(function (Model $relatedModel) use ($existsModel) {
+        $existsModels->filter(function (Model $existsModel) use ($relatedModels): bool {
+            return $relatedModels->filter(function (Model $relatedModel) use ($existsModel): bool {
                 return $existsModel->is($relatedModel);
             })->isEmpty();
-        })->each(function (Model $model) use ($relation) {
+        })->each(function (Model $model) use ($relation): void {
             $this->uow->destroy($model);
-            // TODO: ON DETACH DESTROY, ON DETACH SET NULL ?
         });
 
-        $relatedModels->each(function (Model $related) use ($relation, $model, $relationName) {
-
+        $relatedModels->each(function (Model $related) use ($relation, $model, $relationName): void {
             $this->setRelationField($model, $relation, $related);
             $this->uow->persist($related);
         });
@@ -47,7 +45,7 @@ class HasManyPopulator extends RelationPopulator
         });
     }
 
-    protected function setRelationField(Model $model, HasMany $relation, Model $related)
+    protected function setRelationField(Model $model, HasMany $relation, Model $related): void
     {
         $related->{$relation->getForeignKeyName()} = $model->{$relation->getLocalKeyName()};
     }
