@@ -9,8 +9,12 @@
             "email": "greabock@gmail.com"
         }
     ],
+    "require": {
+        "illuminate/database": "^5.5",
+        "illuminate/support": "^5.5",
+        "ramsey/uuid": "^3.7"
+    },
     "minimum-stability": "stable",
-    "require": {},
     "autoload": {
         "psr-4": {
             "Greabock\\Populator\\": "src/"
