@@ -157,7 +157,7 @@ class UserController
         ],
     ]);
     
-    $user->getRelation('roles'); // Не падает с undefined offset
+    $user->relationLoaded('roles'); // true
     // хотя flush еще не сделан, все отношения уже прописаны, и нет необходимости загружать их дополнтительно.
     // например $user->roles - не вызовет повтороно запроса к бд.
 
