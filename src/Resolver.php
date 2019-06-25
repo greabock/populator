@@ -3,9 +3,9 @@
 namespace Greabock\Populator;
 
 
+use Greabock\Populator\Contracts\KeyGeneratorInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Foundation\Application;
 use InvalidArgumentException;
 
 class Resolver
@@ -14,64 +14,73 @@ class Resolver
      * @var IdentityMap
      */
     private $identityMap;
+
     /**
-     * @var Application
+     * @var KeyGeneratorInterface
      */
-    private $app;
+    private $generator;
 
     /**
      * Resolver constructor.
-     * @param Application $app
      * @param IdentityMap $map
      */
-    public function __construct(Application $app, IdentityMap $map)
+    public function __construct(IdentityMap $map, KeyGeneratorInterface $generator)
     {
+        $this->generator = $generator;
         $this->identityMap = $map;
-        $this->app = $app;
     }
 
     /**
      * @param string|Model $model
      * @param array $data
+     * @param array $data
      * @return Model
      */
     public function resolve($model, array $data): Model
     {
-        $model = $this->resolveModel($model);
+        $model = $this->resolveModelInstance($model);
 
         return $this->find($model, $data) ?? $this->build($model, $data);
     }
 
-    public function getCached(Model $model, array $data): ?Model
+    protected function getCached(Model $model, array $data): ?Model
     {
-        return $this->identityMap->get($this->identityMap->resolveHashName($model, $data));
+        return $this->identityMap->get($this->identityMap::resolveHashName($model, $data));
     }
 
-    public function build(Model $model, array $data): Model
+    protected function build(Model $model, array $data): Model
     {
-        return $this->identityMap[$this->identityMap->resolveHashName($model, $data)] = $model;
+        $model->{$model->getKeyName()} = $this->generator->generate($model);
+        return $this->identityMap[$this->identityMap::resolveHashName($model, $data)] = $model;
     }
 
-    public function find(Model $model, array $data): ?Model
+    protected function find(Model $model, array $data): ?Model
     {
-        if (!isset($data[$model->getKeyName()])) {
-            return null;
-        }
-
-        return $this->getCached($model, $data) ?? $this->findInDataBase($model, $data);
+        return isset($data[$model->getKeyName()]) ?
+            $this->getCached($model, $data) ?? $this->findInDataBase($model, $data) : null;
     }
 
     /**
      * @param Model $model
      * @param string $relation
-     * @return Collection|Model|Model[]
+     * @return mixed|Collection|Model|Model[]|null
      */
-    public function loadRelation(Model $model, string $relation)
+    public function loadRelation(Model $model, string $relationName)
     {
-        return $this->identityMap->loadRelation($model, $relation);
+        if (!$model->relationLoaded($relationName)) {
+            $model->load($relationName);
+        }
+
+        $relation = $model->getRelation($relationName);
+
+        if (!is_null($relation)) {
+            $this->identityMap->remember($relation);
+        }
+
+        return $relation;
     }
 
-    private function findInDataBase(Model $model, array $data): ?Model
+    public function findInDataBase(Model $model, array $data): ?Model
     {
         if (isset($data[$model->getKeyName()])) {
             $resultModel = $model->newQuery()->find($data[$model->getKeyName()]);
@@ -89,7 +98,7 @@ class Resolver
      * @return Model
      * @throws InvalidArgumentException
      */
-    private function resolveModel($model): Model
+    protected function resolveModelInstance($model): Model
     {
         switch (true) {
             case is_object($model) && $model instanceof Model:

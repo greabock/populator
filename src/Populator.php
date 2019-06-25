@@ -60,7 +60,7 @@ class Populator
 
 
         if (is_string($model)) {
-            $model = $this->resolveModel($model, $data);
+            $model = $this->resolve($model, $data);
         }
 
         $model->fill($data);
@@ -84,7 +84,7 @@ class Populator
      * @param $data
      * @return Model
      */
-    public function resolveModel(string $model, array $data): Model
+    public function resolve(string $model, array $data): Model
     {
         return $this->resolver->resolve($model, $data);
     }
@@ -99,6 +99,8 @@ class Populator
 
         foreach ($relations as $relation => $relationData) {
 
+
+
             $relation  = Str::camel($relation);
 
             if (method_exists($model, $relation)) {
@@ -112,7 +114,7 @@ class Populator
      * @param string $relationName
      * @param array $relationData
      */
-    protected function populateRelation(Model $model, string $relationName, array $relationData): void
+    protected function populateRelation(Model $model, string $relationName, ?array $relationData): void
     {
         $relation = $model->{$relationName}();
         foreach ($this->relationPopulators as $class => $populator) {
