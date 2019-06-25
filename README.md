@@ -1,5 +1,5 @@
 # Populator
-
+** Proof of concept идеи смешанной гидрации данных для Eloquent**
 
 ## Использование
 
