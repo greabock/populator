@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
@@ -100,10 +101,9 @@ class Populator
         foreach ($relations as $relation => $relationData) {
 
 
+            $relation = Str::camel($relation);
 
-            $relation  = Str::camel($relation);
-
-            if (method_exists($model, $relation)) {
+            if (method_exists($model, $relation) && call_user_func([$model, $relation]) instanceof Relation) {
                 $this->populateRelation($model, $relation, $relationData);
             }
         }

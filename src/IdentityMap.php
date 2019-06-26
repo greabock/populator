@@ -5,6 +5,7 @@ namespace Greabock\Populator;
 
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Support\Collection;
 
 class IdentityMap extends Collection
@@ -27,6 +28,10 @@ class IdentityMap extends Collection
 
     public function remember($relation)
     {
+        if ($relation instanceof Pivot) {
+            return null;
+        }
+
         if ($relation instanceof EloquentCollection) {
             return $relation->map(function (Model $model) {
                 return $this->remember($model);
