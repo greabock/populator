@@ -56,8 +56,17 @@ class Resolver
 
     protected function find(Model $model, array $data): ?Model
     {
-        return isset($data[$model->getKeyName()]) ?
+        return isset($data[self::resolveKeyName($model)]) ?
             $this->getCached($model, $data) ?? $this->findInDataBase($model, $data) : null;
+    }
+
+    public static function resolveKeyName(Model $model)
+    {
+        if (method_exists($model, 'getMappedKeyName')) {
+            return $model->getMappedKeyName();
+        }
+
+        return $model->getKeyName();
     }
 
     /**
@@ -80,10 +89,17 @@ class Resolver
         return $relation;
     }
 
+    /**
+     * @param Model $model
+     * @param array $data
+     * @return Model|null
+     */
     public function findInDataBase(Model $model, array $data): ?Model
     {
-        if (isset($data[$model->getKeyName()])) {
-            $resultModel = $model->newQuery()->find($data[$model->getKeyName()]);
+        $primaryKeyName = self::resolveKeyName($model);
+
+        if (isset($data[$primaryKeyName])) {
+            $resultModel = $model->newQuery()->find($data[$primaryKeyName]);
             if ($resultModel instanceof Model) {
                 $this->identityMap->remember($resultModel);
                 return $resultModel;

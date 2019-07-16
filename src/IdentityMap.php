@@ -12,15 +12,27 @@ class IdentityMap extends Collection
 {
     protected $trackedRelations = [];
 
+    /**
+     * @param Model $model
+     * @param array|null $data
+     * @return string
+     */
     public static function resolveHashName(Model $model, ?array $data = null): string
     {
         return get_class($model) . '#' . static::resolveKey($model, $data);
     }
 
+    /**
+     * @param Model $model
+     * @param array|null $data
+     * @return string
+     */
     protected static function resolveKey(Model $model, ?array $data = null): string
     {
-        if ($data && isset($data[$model->getKeyName()])) {
-            return $data[$model->getKeyName()];
+        $primaryKeyName = Resolver::resolveKeyName($model);
+
+        if ($data && isset($data[$primaryKeyName])) {
+            return $data[$primaryKeyName];
         }
 
         return $model->getKey();
