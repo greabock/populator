@@ -4,71 +4,77 @@ namespace Greabock\Populator;
 
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Support\Collection;
-use Ramsey\Uuid\Uuid;
 
 class IdentityMap extends Collection
 {
-    public function __construct()
+    protected $trackedRelations = [];
+
+    /**
+     * @param Model $model
+     * @param array|null $data
+     * @return string
+     */
+    public static function resolveHashName(Model $model, ?array $data = null): string
     {
-        parent::__construct();
+        return get_class($model) . '#' . static::resolveKey($model, $data);
     }
 
-    public function resolveHashName(Model $model, ?array $data = null): string
+    /**
+     * @param Model $model
+     * @param array|null $data
+     * @return string
+     */
+    protected static function resolveKey(Model $model, ?array $data = null): string
     {
-        return get_class($model) . '#' . $this->resolveKey($model, $data);
-    }
+        $primaryKeyName = Resolver::resolveKeyName($model);
 
-    protected function resolveKey(Model $model, ?array $data = null): string
-    {
-        if ($data && isset($data[$model->getKeyName()])) {
-            return $data[$model->getKeyName()];
-        }
-
-        if (!$model->getKey()) {
-            $model->{$model->getKeyName()} = $this->generateKey();
+        if ($data && isset($data[$primaryKeyName])) {
+            return $data[$primaryKeyName];
         }
 
         return $model->getKey();
     }
 
-    protected function generateKey(): string
+    public function remember($relation)
     {
-        return Uuid::uuid4()->toString();
-    }
-
-    /**
-     * @param Model $model
-     * @param string $relationName
-     * @return Model|EloquentCollection|Model[]
-     */
-    public function loadRelation(Model $model, string $relationName)
-    {
-        $model->load($relationName);
-        if ($model->{$relationName} instanceof EloquentCollection) {
-            foreach ($model->{$relationName} as $relatedModel) {
-                $this[$this->resolveHashName($relatedModel)] = $relatedModel;
-            }
-        } elseif (!is_null($model->{$relationName})) {
-            $this[$this->resolveHashName($model->{$relationName})] = $model->{$relationName};
+        if ($relation instanceof Pivot) {
+            return null;
         }
 
-        return $model->{$relationName};
+        if ($relation instanceof EloquentCollection) {
+            return $relation->map(function (Model $model) {
+                return $this->remember($model);
+            })->toArray();
+        }
+
+        foreach ($relation->getRelations() as $key => $nestedRelation) {
+            if ($this->isTrackedRelation(static::resolveRelationHashName($relation, $key))) {
+                continue;
+            }
+            $this->remember($nestedRelation);
+            $this->markTracked(static::resolveRelationHashName($relation, $key));
+        }
+
+        $hashName = static::resolveHashName($relation);
+        $this[$hashName] = $relation;
+
+        return $hashName;
     }
 
-    public function remember(Model $model): void
+    public function isTrackedRelation($key)
     {
-        $this[$this->resolveHashName($model)] = $model;
-        foreach ($model->getRelations() as $relation) {
-            if ($relation instanceof EloquentCollection) {
-                foreach ($relation as $relationModel) {
-                    $this->remember($relationModel);
-                }
-            }
+        return in_array($key, $this->trackedRelations);
+    }
 
-            if ($relation instanceof Model) {
-                $this->remember($relation);
-            }
-        }
+    public static function resolveRelationHashName(Model $model, $relationName)
+    {
+        return static::resolveHashName($model) . '#' . $relationName;
+    }
+
+    public function markTracked($key)
+    {
+        return $this->trackedRelations[] = $key;
     }
 }

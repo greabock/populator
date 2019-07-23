@@ -34,7 +34,7 @@ class UnitOfWork
 
     public function persist(Model $model): void
     {
-        $hashName = $this->map->resolveHashName($model);
+        $hashName = $this->map::resolveHashName($model);
         $this->toPersist[$hashName] = $model;
         if (isset($this->toDestroy[$hashName])) {
             unset($this->toDestroy[$hashName]);
@@ -44,7 +44,7 @@ class UnitOfWork
 
     public function destroy(Model $model): void
     {
-        $hashName = $this->map->resolveHashName($model);
+        $hashName = $this->map::resolveHashName($model);
         if (isset($this->toPersist[$hashName])) {
             unset($this->toPersist[$hashName]);
         }
