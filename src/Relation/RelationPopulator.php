@@ -2,7 +2,6 @@
 
 namespace Greabock\Populator\Relation;
 
-
 use Greabock\Populator\Populator;
 use Greabock\Populator\Resolver;
 use Greabock\Populator\UnitOfWork;
@@ -32,5 +31,5 @@ abstract class RelationPopulator
     }
 
 
-    abstract function populate(Model $model, string $relationName, ?array $data): void;
+    abstract public function populate(Model $model, string $relationName, ?array $data): void;
 }

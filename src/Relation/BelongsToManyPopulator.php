@@ -9,7 +9,7 @@ use Illuminate\Support\Str;
 
 class BelongsToManyPopulator extends RelationPopulator
 {
-    function populate(Model $model, string $relationName, ?array $data): void
+    public function populate(Model $model, string $relationName, ?array $data): void
     {
         if (is_null($data)) {
             return;

@@ -8,8 +8,7 @@ use Illuminate\Support\Str;
 
 class BelongsToPopulator extends RelationPopulator
 {
-
-    function populate(Model $model, string $relationName, ?array $data): void
+    public function populate(Model $model, string $relationName, ?array $data): void
     {
         /** @var BelongsTo $relation */
         $relation = $model->{$relationName}();

@@ -60,7 +60,7 @@ class UnitOfWork
             $this->doDestroy();
             $this->doOnFlush();
             DB::commit();
-        } catch (\Exception $e) {
+        } catch (\Exception|\Error $e) {
             DB::rollBack();
             throw $e;
         }

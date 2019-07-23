@@ -2,7 +2,6 @@
 
 namespace Greabock\Populator;
 
-
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -10,7 +9,6 @@ use Ramsey\Uuid\Uuid;
 
 class IdentityMap extends Collection
 {
-
     public function __construct()
     {
         parent::__construct();

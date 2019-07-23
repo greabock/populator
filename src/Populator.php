@@ -2,7 +2,6 @@
 
 namespace Greabock\Populator;
 
-
 use Exception;
 use Greabock\Populator\Relation\BelongsToManyPopulator;
 use Greabock\Populator\Relation\BelongsToPopulator;
@@ -98,7 +97,6 @@ class Populator
         $relations = Arr::except($data, $model->getFillable());
 
         foreach ($relations as $relation => $relationData) {
-
             $relation  = Str::camel($relation);
 
             if (method_exists($model, $relation)) {

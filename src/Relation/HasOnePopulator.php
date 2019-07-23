@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 
 class HasOnePopulator extends RelationPopulator
 {
-    function populate(Model $model, string $relationName, ?array $data): void
+    public function populate(Model $model, string $relationName, ?array $data): void
     {
         /** @var ?Model $existsModel */
         $existsModel = $this->resolver->loadRelation($model, $relationName);

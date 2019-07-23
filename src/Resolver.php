@@ -2,7 +2,6 @@
 
 namespace Greabock\Populator;
 
-
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Application;
