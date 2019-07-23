@@ -32,7 +32,6 @@ class Resolver
     /**
      * @param string|Model $model
      * @param array $data
-     * @param array $data
      * @return Model
      */
     public function resolve($model, array $data): Model
@@ -53,7 +52,7 @@ class Resolver
         return $this->identityMap[$this->identityMap::resolveHashName($model, $data)] = $model;
     }
 
-    protected function find(Model $model, array $data): ?Model
+    public function find(Model $model, array $data): ?Model
     {
         return isset($data[self::resolveKeyName($model)]) ?
             $this->getCached($model, $data) ?? $this->findInDataBase($model, $data) : null;

@@ -48,7 +48,9 @@ class Populator
     /**
      * @param mixed|Model|string $model
      * @param array|null $data
+     * @param string $path
      * @return Model|null
+     * @throws Exception
      */
     public function populate($model, ?array $data): ?Model
     {
@@ -57,7 +59,6 @@ class Populator
         if (is_null($data)) {
             return null;
         }
-
 
         if (is_string($model)) {
             $model = $this->resolve($model, $data);
@@ -69,6 +70,20 @@ class Populator
         $this->uow->persist($model);
 
         return $model;
+    }
+
+    public function getRelationPopulator($model, $relationName)
+    {
+        if (is_string($model)) {
+            $model = new $model;
+        }
+
+        $relation = $this->extractRelation($model, $relationName);
+        foreach ($this->relationPopulators as $class => $populator) {
+            if ($relation instanceof $class) {
+                return $populator;
+            }
+        }
     }
 
     /**
@@ -115,13 +130,8 @@ class Populator
      */
     protected function populateRelation(Model $model, string $relationName, ?array $relationData): void
     {
-        $relation = $model->{$relationName}();
-        foreach ($this->relationPopulators as $class => $populator) {
-            if ($relation instanceof $class) {
-                $populator->populate($model, $relationName, $relationData);
-                break;
-            }
-        }
+        $this->getRelationPopulator($model, $relationName)
+            ->populate($model, $this->extractRelation($model, $relationName), $relationData, $relationName);
     }
 
     private function initRelationPopulators(): void
@@ -132,5 +142,10 @@ class Populator
             BelongsTo::class     => new BelongsToPopulator($this->resolver, $this->uow, $this),
             HasOne::class        => new HasOnePopulator($this->resolver, $this->uow, $this),
         ];
+    }
+
+    private function extractRelation(Model $model, string $relationName): Relation
+    {
+        return call_user_func([$model, $relationName]);
     }
 }

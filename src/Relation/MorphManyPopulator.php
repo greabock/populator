@@ -2,18 +2,17 @@
 
 namespace Greabock\Populator\Relation;
 
-use Illuminate\Database\Eloquent\Collection;
+
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Str;
 
-class HasManyPopulator extends RelationPopulator
+class MorphManyPopulator extends RelationPopulator
 {
-
     /**
      * @param Model $model
-     * @param Relation|HasMany $relation
+     * @param Relation|MorphMany $relation
      * @param array|null $data
      * @param string $relationName
      */
@@ -23,7 +22,6 @@ class HasManyPopulator extends RelationPopulator
             return;
         }
 
-        /** @var Collection $existsModels */
         $existsModels = $this->resolver->loadRelation($model, $relationName);
 
         $relatedModels = $relation->getQuery()->getModel()->newCollection()
@@ -47,8 +45,9 @@ class HasManyPopulator extends RelationPopulator
         $model->setRelation(Str::snake($relationName), $relatedModels);
     }
 
-    protected function setRelationField(Model $model, HasMany $relation, Model $related): void
+    protected function setRelationField(Model $model, MorphMany $relation, Model $related): void
     {
         $related->{$relation->getForeignKeyName()} = $model->{$relation->getLocalKeyName()};
+        $related->{$relation->getMorphType()} = $model->getMorphClass();
     }
 }

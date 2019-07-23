@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 interface KeyGeneratorInterface
 {
-    /**  @return mixed */
+    /**
+     * @param Model $model
+     * @return mixed
+     */
     public function generate(Model $model);
 }

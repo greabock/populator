@@ -2,17 +2,19 @@
 
 namespace Greabock\Populator\Relation;
 
+
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphToMany;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
-class BelongsToManyPopulator extends RelationPopulator
+class MorphToManyPopulator extends RelationPopulator
 {
+
     /**
      * @param Model $model
-     * @param Relation|BelongsToMany $relation
+     * @param Relation|MorphToMany $relation
      * @param array|null $data
      * @param string $relationName
      */
@@ -30,6 +32,7 @@ class BelongsToManyPopulator extends RelationPopulator
             return $relatedModel ? tap($relatedModel, function (Model $relatedModel) use ($model, $relation, $relatedData) {
                 $relatedModel->setRelation('pivot', $relation->newPivot(
                     array_merge(Arr::get($relatedData, 'pivot', []), [
+                        $relation->getMorphType()           => $model->getMorphClass(),
                         $relation->getForeignPivotKeyName() => $model->{$relation->getParentKeyName()},
                         $relation->getRelatedPivotKeyName() => $relatedModel->{$relation->getRelatedKeyName()},
                     ]), $model->exists
@@ -55,4 +58,5 @@ class BelongsToManyPopulator extends RelationPopulator
 
         $model->setRelation(Str::snake($relationName), $relatedCollection);
     }
+
 }

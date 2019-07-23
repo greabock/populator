@@ -37,6 +37,10 @@ class IdentityMap extends Collection
         return $model->getKey();
     }
 
+    /**
+     * @param Model|EloquentCollection $relation
+     * @return array|string|null
+     */
     public function remember($relation)
     {
         if ($relation instanceof Pivot) {

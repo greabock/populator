@@ -2,16 +2,17 @@
 
 namespace Greabock\Populator\Relation;
 
+
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Str;
 
-class HasOnePopulator extends RelationPopulator
+class MorphOnePopulator extends RelationPopulator
 {
     /**
      * @param Model $model
-     * @param Relation|HasOne $relation
+     * @param Relation|MorphOne $relation
      * @param array|null $data
      * @param string $relationName
      * @throws \Exception
@@ -36,8 +37,9 @@ class HasOnePopulator extends RelationPopulator
         $model->setRelation(Str::snake($relationName), $relatedModel);
     }
 
-    protected function setRelationField(Model $model, HasOne $relation, Model $related): void
+    protected function setRelationField(Model $model, MorphOne $relation, Model $related): void
     {
         $model->{$relation->getForeignKeyName()} = $related ? $related->{$relation->getLocalKeyName()} : null;
+        $model->{$relation->getMorphType()} = $related->getMorphClass();
     }
 }
