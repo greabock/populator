@@ -2,11 +2,11 @@
 
 namespace Greabock\Populator\Relation;
 
-
 use Greabock\Populator\Populator;
 use Greabock\Populator\Resolver;
 use Greabock\Populator\UnitOfWork;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\Relation;
 
 abstract class RelationPopulator
 {
@@ -31,6 +31,11 @@ abstract class RelationPopulator
         $this->populator = $populator;
     }
 
-
-    abstract function populate(Model $model, string $relationName, ?array $data): void;
+    /**
+     * @param Model $model
+     * @param Relation $relation
+     * @param array|null $data
+     * @param string $relationName
+     */
+    abstract public function populate(Model $model, Relation $relation, ?array $data, string $relationName): void;
 }
