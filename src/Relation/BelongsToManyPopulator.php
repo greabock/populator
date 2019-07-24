@@ -38,7 +38,7 @@ class BelongsToManyPopulator extends RelationPopulator
         });
 
         // Build authentic collection for model.
-        $relatedCollection = $relation->getQuery()->getModel()->newCollection($relatedCollection->all());
+        $relatedCollection = $relation->getQuery()->getModel()->newCollection($relatedCollection->filter()->all());
 
         // Pivot may have foreign keys, so we should sync models after all related models persisted.
         // Use onFlush method for it.
