@@ -19,5 +19,12 @@
         "psr-4": {
             "Greabock\\Populator\\": "src/"
         }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Greabock\\Populator\\PopulatorServiceProvider"
+            ]
+        }
     }
 }
