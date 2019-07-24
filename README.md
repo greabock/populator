@@ -3,15 +3,21 @@
 
 > На данный момент работает только с uuid
 
+## Идея
+
+Работая с данными по API, мы часто получаем эти сущности с вложенными отношениями, но вот при отправке данных, вложенные отношения приходится обрабатывать вручную. Данный гидратор позволяет не думать об этом. И это сильно ускоряет разработку.
+
 ## Использование
 
 Использовать эту штуку очень просто
+
+Бэкэнд:
 ```php
 <?php
 
 namespace App\Http\Controllers;
 
-use App\User;
+use App\Post;
 use Exception;
 use Greabock\Populator\Populator;
 use Illuminate\Http\Request;
@@ -22,19 +28,90 @@ class UserController
      * @param $id
      * @param Request $request
      * @param Populator $populator
-     * @return User
+     * @return Post
      * @throws Exception
      */
-    public function put(Request $request, Populator $populator): User
+    public function put(Request $request, Populator $populator): Post
     {
-        /** @var User $user */
-        $user = $populator->populate(User::class, $request->input());
+        $post = Post::findOrNew($request->get('id'));
+        $populator->populate($post, $request->input());
+
         // здесь мы можем сделать что-то до того, как изменения отправятся в базу.
+        
         $populator->flush();
         
-        return $user;
+        return $post;
     }
 }
+```
+
+Пример js (не делайте так - это просто пример):
+```js
+import uuid from 'uuid/v4'
+
+class Post {
+  public constructor(data) {
+    if(!data.id) {
+        data.id = uuid()
+    }
+    Object.assign(this, data)
+  }
+  
+  addTag (tag) {
+    this.tags.push(tag)
+  }
+  
+  addImage (image) {
+    this.images.push(image)
+  }
+}
+
+class Tag {
+  constructor(data) {
+    if(!data.id) {
+        data.id = uuid()
+    }
+    Object.assign(this, data)
+  }
+}
+
+let post, tags;
+
+//
+function loadTags () {
+  fetch('tags')
+    .then(response => response.json())
+    .then(tagsData => tags = data.map(tagdata => new Tag(tagdata)))
+
+}
+
+function loadPost (id) {
+  fetch(`posts/${id}`)
+    .then(response => response.json())
+    .then(data => post = new Post(data))
+}
+
+
+function addTag(tag) {
+    post.addTag(tag)
+}
+
+function savePost(post) {
+  fetch(`posts/${post.id}`, {method: 'PUT', body: JSON.stringify(post)})
+    .then(response => response.json())
+    .then(data => alert(`Post ${data.title} saved!`))
+}
+
+loadTags()
+loadPost(1)
+
+// После того, как всё загружено:
+
+post.addTag(tags[0])
+post.title = 'Hello World!'
+
+savePost(post)
+
 ```
 
 ## Особенности заполнения
@@ -174,8 +251,6 @@ class UserController
 
 
 ## TODO
-
-- добавить обработку полиморфии
 - добавить возможность персиста сущности не прошедшей через гидратор 
 
 
