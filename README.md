@@ -40,7 +40,7 @@ use Exception;
 use Greabock\Populator\Populator;
 use Illuminate\Http\Request;
 
-class UserController
+class PostController
 {
     /**
      * @param $id
