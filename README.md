@@ -52,7 +52,7 @@ class PostController
     public function put(Request $request, Populator $populator): Post
     {
         $post = Post::findOrNew($request->get('id'));
-        $populator->populate($post, $request->input());
+        $populator->populate($post, $request->all());
 
         // здесь мы можем сделать что-то до того, как изменения отправятся в базу.
         
