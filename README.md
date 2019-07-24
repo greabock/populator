@@ -112,11 +112,6 @@ function loadPost (id) {
     .then(data => post = new Post(data))
 }
 
-
-function addTag(tag) {
-    post.addTag(tag)
-}
-
 function savePost(post) {
   fetch(`posts/${post.id}`, {method: 'PUT', body: JSON.stringify(post)})
     .then(response => response.json())
