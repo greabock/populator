@@ -19,7 +19,7 @@ class HasManyPopulator extends RelationPopulator
      */
     public function populate(Model $model, Relation $relation, ?array $data, string $relationName): void
     {
-        if (!$data) {
+        if (is_null($data)) {
             return;
         }
 
