@@ -49,8 +49,13 @@ class Resolver
 
     protected function build(Model $model, array $data): Model
     {
-        $model->{$model->getKeyName()} = $this->generator->generate($model);
+        $model->{$model->getKeyName()} = $this->resolveKey($model, $data);
         return $this->identityMap[$this->identityMap::resolveHashName($model, $data)] = $model;
+    }
+
+    protected function resolveKey()
+    {
+        return isset($data[self::resolveKeyName($model)]) ? $data[self::resolveKeyName($model)] : $this->generator->generate($model);
     }
 
     public function find(Model $model, array $data): ?Model
