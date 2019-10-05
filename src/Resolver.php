@@ -53,7 +53,7 @@ class Resolver
         return $this->identityMap[$this->identityMap::resolveHashName($model, $data)] = $model;
     }
 
-    protected function resolveKey()
+    protected function resolveKey(Model $model, array $data)
     {
         return isset($data[self::resolveKeyName($model)]) ? $data[self::resolveKeyName($model)] : $this->generator->generate($model);
     }
