@@ -73,6 +73,7 @@ class Populator
         }
 
         $model->fill($data);
+
         $this->fillRelations($model, $data);
 
         $this->uow->persist($model);
@@ -126,6 +127,14 @@ class Populator
             $relation = Str::camel($relation);
 
             if (method_exists($model, $relation) && call_user_func([$model, $relation]) instanceof Relation) {
+
+//                if (is_string($relationData) || is_bool($relationData)) {
+//                    dump(get_class($model));
+//                    dump($relation);
+//                    dump($relationData);
+//                    dd();
+//                }
+
                 $this->populateRelation($model, $relation, $relationData);
             }
         }

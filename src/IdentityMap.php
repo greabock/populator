@@ -43,6 +43,10 @@ class IdentityMap extends Collection
      */
     public function remember($relation)
     {
+        if (is_null($relation)) {
+            return null;
+        }
+
         if ($relation instanceof Pivot) {
             return null;
         }
@@ -57,6 +61,7 @@ class IdentityMap extends Collection
             if ($this->isTrackedRelation(static::resolveRelationHashName($relation, $key))) {
                 continue;
             }
+
             $this->remember($nestedRelation);
             $this->markTracked(static::resolveRelationHashName($relation, $key));
         }
