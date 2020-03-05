@@ -2,10 +2,12 @@
 
 namespace Greabock\Populator\Relation;
 
+use Greabock\Populator\Exceptions\PopulatorMappingException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 class HasManyPopulator extends RelationPopulator
@@ -23,11 +25,19 @@ class HasManyPopulator extends RelationPopulator
             return;
         }
 
+        if (Arr::isAssoc($data)) {
+            throw new PopulatorMappingException(
+                sprintf('Данные для отношения %s::%s должны быть списком ассоциативных массивов', get_class($model),
+                    $relationName)
+            );
+        }
+
         /** @var Collection $existsModels */
         $existsModels = $this->resolver->loadRelation($model, $relationName);
 
         $relatedModels = $relation->getQuery()->getModel()->newCollection()
-            ->concat(array_map(function (array $modelData) use ($relation) {
+            ->concat(array_map(function (array $modelData) use ($relation, $model, $relationName, $data) {
+
                 return $this->populator->populate(get_class($relation->getRelated()), $modelData);
             }, $data));
 
