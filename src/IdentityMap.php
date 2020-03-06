@@ -16,9 +16,13 @@ class IdentityMap extends Collection
      * @param array|null $data
      * @return string
      */
-    public static function resolveHashName(Model $model, ?array $data = null): string
+    public static function resolveHashName(Model $model, ?array $data = null): ?string
     {
-        return get_class($model) . '#' . static::resolveKey($model, $data);
+        if($key = static::resolveKey($model, $data)){
+            return get_class($model) . '#' . $key;
+        }
+
+        return null;
     }
 
     /**
@@ -26,7 +30,7 @@ class IdentityMap extends Collection
      * @param array|null $data
      * @return string
      */
-    protected static function resolveKey(Model $model, ?array $data = null): string
+    protected static function resolveKey(Model $model, ?array $data = null): ?string
     {
         $primaryKeyName = Resolver::resolveKeyName($model);
 
