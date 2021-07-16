@@ -123,6 +123,11 @@ class Populator
 
         foreach ($relations as $relation => $relationData) {
 
+            if ($model->isRelation($relation)) {
+
+                $this->populateRelation($model, $relation, $relationData);
+            }
+
             $relation = Str::camel($relation);
 
             if ($model->isRelation($relation)) {
