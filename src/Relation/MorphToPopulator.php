@@ -23,7 +23,7 @@ class MorphToPopulator extends RelationPopulator
 
         $this->fillRelationField($model, $relation, $related);
 
-        $model->setRelation(Str::snake($relation->getRelationName()), $related);
+        $model->setRelation(Str::snake($relationName)), $related);
     }
 
     protected function fillRelationField(Model $model, BelongsTo $relation, ?Model $related): void
