@@ -122,11 +122,10 @@ class Populator
         $relations = Arr::except($data, $model->getFillable());
 
         foreach ($relations as $relation => $relationData) {
-            $relation = Str::camel($relation);
 
             $relation = Str::camel($relation);
 
-            if ((method_exists($model, $relation) || $model::hasMacro($relation)) && $model->$relation() instanceof Relation) {
+            if ($model->isRelation($relation)) {
 
                 $this->populateRelation($model, $relation, $relationData);
             }
