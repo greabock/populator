@@ -6,33 +6,31 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Support\Collection;
+use PhpParser\Node\Expr\AssignOp\Mod;
 
-class IdentityMap extends Collection
+class IdentityMap
 {
-    protected $trackedRelations = [];
+    protected array $trackedRelations = [];
 
-    /**
-     * @param Model $model
-     * @param array|null $data
-     * @return string
-     */
-    public static function resolveHashName(Model $model, ?array $data = null): ?string
+    private Collection $heap;
+
+    public function __construct()
     {
-        if($key = static::resolveKey($model, $data)){
+        $this->heap = new Collection();
+    }
+
+    private function resolveHashName(Model $model, ?array $data = null): ?string
+    {
+        if ($key = $this->resolveKey($model, $data)) {
             return get_class($model) . '#' . $key;
         }
 
         return null;
     }
 
-    /**
-     * @param Model $model
-     * @param array|null $data
-     * @return string
-     */
-    protected static function resolveKey(Model $model, ?array $data = null): ?string
+    private function resolveKey(Model $model, ?array $data = null): ?string
     {
-        $primaryKeyName = Resolver::resolveKeyName($model);
+        $primaryKeyName = $model->getKeyName();
 
         if ($data && isset($data[$primaryKeyName])) {
             return $data[$primaryKeyName];
@@ -41,53 +39,73 @@ class IdentityMap extends Collection
         return $model->getKey();
     }
 
-    /**
-     * @param Model|EloquentCollection $relation
-     * @return array|string|null
-     */
-    public function remember($relation)
+    public function track(Model|EloquentCollection|null $relation): void
     {
         if (is_null($relation)) {
-            return null;
+            return;
         }
 
         if ($relation instanceof Pivot) {
-            return null;
+            return;
         }
 
         if ($relation instanceof EloquentCollection) {
-            return $relation->map(function (Model $model) {
-                return $this->remember($model);
-            })->toArray();
+            $relation->each(function (Model $model) {
+                $this->track($model);
+            });
         }
 
         foreach ($relation->getRelations() as $key => $nestedRelation) {
-            if ($this->isTrackedRelation(static::resolveRelationHashName($relation, $key))) {
+            if ($this->isTrackedRelation($this->resolveRelationHashName($relation, $key))) {
                 continue;
             }
 
-            $this->remember($nestedRelation);
-            $this->markTracked(static::resolveRelationHashName($relation, $key));
+            $this->track($nestedRelation);
+            $this->markTracked($this->resolveRelationHashName($relation, $key));
         }
 
-        $hashName = static::resolveHashName($relation);
-        $this[$hashName] = $relation;
-
-        return $hashName;
+        $this->remember($relation);
     }
 
-    public function isTrackedRelation($key)
+    public function remember(Model $model): void
+    {
+        $hashName = $this->resolveHashName($model);
+
+        $this->heap->put($hashName, $model);
+    }
+
+    protected function isTrackedRelation($key): bool
     {
         return in_array($key, $this->trackedRelations);
     }
 
-    public static function resolveRelationHashName(Model $model, $relationName)
+    private function resolveRelationHashName(Model $model, $relationName): string
     {
-        return static::resolveHashName($model) . '#' . $relationName;
+        return $this->resolveHashName($model) . '#' . $relationName;
     }
 
-    public function markTracked($key)
+    private function markTracked($key): void
     {
-        return $this->trackedRelations[] = $key;
+        $this->trackedRelations[] = $key;
+    }
+
+    public function get(Model $model, ?array $data)
+    {
+        return $this->heap->get($this->resolveHashName($model, $data));
+    }
+
+    public function forget(Model $model)
+    {
+        $this->heap->forget($this->resolveHashName($model));
+    }
+
+    public function clear()
+    {
+        $this->heap = new Collection();
+    }
+
+    public function models(): Collection
+    {
+        return $this->heap;
     }
 }

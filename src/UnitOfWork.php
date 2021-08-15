@@ -7,84 +7,65 @@ use Illuminate\Support\Facades\DB;
 
 class UnitOfWork
 {
-    /**
-     * @var Model[]
-     */
-    protected $toPersist = [];
+    protected IdentityMap $toPersist;
 
-    /**
-     * @var Model[]
-     */
-    protected $toDestroy = [];
+    protected IdentityMap $toDestroy;
 
-    /**
-     * @var callable[]|array
-     */
-    protected $onFlushInstructions = [];
+    /** @var array<int,callable> */
+    protected array $onFlushInstructions = [];
 
-    /**
-     * @var IdentityMap
-     */
-    private $map;
+    private IdentityMap $exists;
 
     public function __construct(IdentityMap $map)
     {
-        $this->map = $map;
+        $this->exists = $map;
+        $this->toDestroy = new IdentityMap();
+        $this->toPersist = new IdentityMap();
     }
 
     public function persist(Model $model): void
     {
-        $hashName = $this->map::resolveHashName($model);
-        $this->toPersist[$hashName] = $model;
-        if (isset($this->toDestroy[$hashName])) {
-            unset($this->toDestroy[$hashName]);
-        }
-        $this->map[$hashName] = $model;
+        $this->toPersist->remember($model);
+        $this->toDestroy->forget($model);
+        $this->exists->remember($model);
     }
 
     public function destroy(Model $model): void
     {
-        $hashName = $this->map::resolveHashName($model);
-        if (isset($this->toPersist[$hashName])) {
-            unset($this->toPersist[$hashName]);
-        }
-        $this->toDestroy[$hashName] = $model;
-        $this->map->forget($hashName);
+        $this->toPersist->forget($model);
+        $this->toDestroy->remember($model);
+        $this->exists->forget($model);
     }
 
     public function flush(): void
     {
-        DB::beginTransaction();
-        try {
+        DB::transaction(function () {
             $this->doPersist();
             $this->doDestroy();
             $this->doOnFlush();
-            DB::commit();
-        } catch (\Exception|\Error $e) {
-            DB::rollBack();
-            throw $e;
-        }
+        });
     }
 
     protected function doPersist(): void
     {
-        foreach (array_reverse($this->toPersist) as $model) {
+        foreach ($this->toPersist->models()->reverse() as $model) {
             if ($model->isDirty() || !$model->exists) {
                 $model->save();
             }
         }
 
-        $this->toPersist = [];
+        $this->toPersist->clear();
     }
 
     protected function doDestroy(): void
     {
-        foreach ($this->toDestroy as $model) {
+        foreach ($this->toDestroy->models() as $model) {
             if ($model->exists) {
                 $model->delete();
             }
         }
-        $this->toPersist = [];
+
+        $this->toPersist->clear();
     }
 
     public function onFlush(callable $fn): void

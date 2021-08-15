@@ -10,6 +10,7 @@
         }
     ],
     "require": {
+        "php": "^8.0",
         "illuminate/database": "^8.40",
         "illuminate/support": "^8.40",
         "ramsey/uuid": "^4.1.1"
@@ -26,5 +27,8 @@
                 "Greabock\\Populator\\PopulatorServiceProvider"
             ]
         }
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5"
     }
 }

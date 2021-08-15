@@ -19,10 +19,8 @@ class MorphOnePopulator extends RelationPopulator
      */
     public function populate(Model $model, Relation $relation, ?array $data, string $relationName): void
     {
-        /** @var ?Model $existsModel */
         $existsModel = $this->resolver->loadRelation($model, $relationName);
 
-        /** @var ?Model $relatedModel */
         $relatedModel = $this->populator->populate(get_class($relation->getRelated()), $data);
 
         if (!is_null($existsModel) && !$existsModel->is($relatedModel)) {

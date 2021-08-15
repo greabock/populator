@@ -2,7 +2,7 @@
 
 namespace Greabock\Populator;
 
-use Exception;
+use Greabock\Populator\Exceptions\PopulatorMappingException;
 use Greabock\Populator\Relation\BelongsToManyPopulator;
 use Greabock\Populator\Relation\BelongsToPopulator;
 use Greabock\Populator\Relation\HasManyPopulator;
@@ -27,40 +27,18 @@ use Illuminate\Support\Str;
 
 class Populator
 {
-    /**
-     * @var Resolver
-     */
-    private $resolver;
+    /** @var array<class-string,RelationPopulator> */
+    protected array $relationPopulators = [];
 
-    /**
-     * @var RelationPopulator[]
-     */
-    protected $relationPopulators = [];
-    /**
-     * @var UnitOfWork
-     */
-    private $uow;
-
-    /**
-     * Populator constructor.
-     * @param Resolver $resolver
-     * @param UnitOfWork $uow
-     */
-    public function __construct(Resolver $resolver, UnitOfWork $uow)
+    public function __construct(
+        private Resolver   $resolver,
+        private UnitOfWork $uow
+    )
     {
-        $this->resolver = $resolver;
-        $this->uow = $uow;
         $this->initRelationPopulators();
     }
 
-    /**
-     * @param mixed|Model|string $model
-     * @param array|null $data
-     * @param string $path
-     * @return Model|null
-     * @throws Exception
-     */
-    public function populate($model, ?array $data): ?Model
+    public function populate(Model|string $model, ?array $data): ?Model
     {
         assert(is_subclass_of($model, Model::class));
 
@@ -81,33 +59,28 @@ class Populator
         return $model;
     }
 
-    public function getRelationPopulator($model, $relationName)
+    public function getRelationPopulator($model, $relationName): RelationPopulator
     {
         if (is_string($model)) {
             $model = new $model;
         }
 
         $relation = $this->extractRelation($model, $relationName);
+
         foreach ($this->relationPopulators as $class => $populator) {
             if ($relation instanceof $class) {
                 return $populator;
             }
         }
+
+        throw new PopulatorMappingException(sprintf('Unknown relation type [%s]', get_class($relation)));
     }
 
-    /**
-     * @throws Exception
-     */
     public function flush(): void
     {
         $this->uow->flush();
     }
 
-    /**
-     * @param $model
-     * @param $data
-     * @return Model
-     */
     public function resolve(string $model, array $data): Model
     {
         return $this->resolver->resolve($model, $data);
@@ -137,11 +110,6 @@ class Populator
         }
     }
 
-    /**
-     * @param Model $model
-     * @param string $relationName
-     * @param array $relationData
-     */
     protected function populateRelation(Model $model, string $relationName, ?array $relationData): void
     {
         $this->getRelationPopulator($model, $relationName)
@@ -151,14 +119,14 @@ class Populator
     private function initRelationPopulators(): void
     {
         $this->relationPopulators = [
-            MorphTo::class       => new MorphToPopulator($this->resolver, $this->uow, $this),
-            HasMany::class       => new HasManyPopulator($this->resolver, $this->uow, $this),
+            MorphTo::class => new MorphToPopulator($this->resolver, $this->uow, $this),
+            HasMany::class => new HasManyPopulator($this->resolver, $this->uow, $this),
             BelongsToMany::class => new BelongsToManyPopulator($this->resolver, $this->uow, $this),
-            BelongsTo::class     => new BelongsToPopulator($this->resolver, $this->uow, $this),
-            HasOne::class        => new HasOnePopulator($this->resolver, $this->uow, $this),
-            MorphOne::class      => new MorphOnePopulator($this->resolver, $this->uow, $this),
-            MorphMany::class     => new MorphManyPopulator($this->resolver, $this->uow, $this),
-            MorphToMany::class   => new MorphToManyPopulator($this->resolver, $this->uow, $this),
+            BelongsTo::class => new BelongsToPopulator($this->resolver, $this->uow, $this),
+            HasOne::class => new HasOnePopulator($this->resolver, $this->uow, $this),
+            MorphOne::class => new MorphOnePopulator($this->resolver, $this->uow, $this),
+            MorphMany::class => new MorphManyPopulator($this->resolver, $this->uow, $this),
+            MorphToMany::class => new MorphToManyPopulator($this->resolver, $this->uow, $this),
         ];
     }
 

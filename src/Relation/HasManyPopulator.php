@@ -32,7 +32,6 @@ class HasManyPopulator extends RelationPopulator
             );
         }
 
-        /** @var Collection $existsModels */
         $existsModels = $this->resolver->loadRelation($model, $relationName);
 
         $relatedModels = $relation->getQuery()->getModel()->newCollection()
