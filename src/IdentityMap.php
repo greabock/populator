@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Support\Collection;
-use PhpParser\Node\Expr\AssignOp\Mod;
 
 class IdentityMap
 {
@@ -41,30 +40,34 @@ class IdentityMap
 
     public function track(Model|EloquentCollection|null $relation): void
     {
-        if (is_null($relation)) {
-            return;
-        }
-
-        if ($relation instanceof Pivot) {
+        if (is_null($relation) || $relation instanceof Pivot) {
             return;
         }
 
         if ($relation instanceof EloquentCollection) {
-            $relation->each(function (Model $model) {
-                $this->track($model);
-            });
+
+            $relation->each([$this, 'track']);
+
+            return;
         }
 
         foreach ($relation->getRelations() as $key => $nestedRelation) {
-            if ($this->isTrackedRelation($this->resolveRelationHashName($relation, $key))) {
-                continue;
-            }
-
-            $this->track($nestedRelation);
-            $this->markTracked($this->resolveRelationHashName($relation, $key));
+            $this->trackRelation($relation, $key, $nestedRelation);
         }
 
         $this->remember($relation);
+    }
+
+    public function trackRelation($relation, $key, $nestedRelation): void
+    {
+        $hash = $this->resolveRelationHashName($relation, $key);
+
+        if (!$this->isTrackedRelation($hash)) {
+
+            $this->track($nestedRelation);
+
+            $this->markTracked($hash);
+        }
     }
 
     public function remember(Model $model): void
