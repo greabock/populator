@@ -10,8 +10,8 @@
         }
     ],
     "require": {
-        "illuminate/database": "^8.40",
-        "illuminate/support": "^8.40",
+        "illuminate/database": "^9.0",
+        "illuminate/support": "^9.0",
         "ramsey/uuid": "^4.1.1"
     },
     "minimum-stability": "stable",
