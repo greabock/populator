@@ -84,7 +84,7 @@ class UnitOfWork
                 $model->delete();
             }
         }
-        $this->toPersist = [];
+        $this->toDestroy = [];
     }
 
     public function onFlush(callable $fn): void
@@ -99,5 +99,9 @@ class UnitOfWork
         }
 
         $this->onFlushInstructions = [];
+    }
+
+    public function clear(): void {
+        $this->map->clear();
     }
 }

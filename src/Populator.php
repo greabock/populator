@@ -151,19 +151,25 @@ class Populator
     private function initRelationPopulators(): void
     {
         $this->relationPopulators = [
-            MorphTo::class       => new MorphToPopulator($this->resolver, $this->uow, $this),
-            HasMany::class       => new HasManyPopulator($this->resolver, $this->uow, $this),
+            MorphTo::class => new MorphToPopulator($this->resolver, $this->uow, $this),
+            HasMany::class => new HasManyPopulator($this->resolver, $this->uow, $this),
             BelongsToMany::class => new BelongsToManyPopulator($this->resolver, $this->uow, $this),
-            BelongsTo::class     => new BelongsToPopulator($this->resolver, $this->uow, $this),
-            HasOne::class        => new HasOnePopulator($this->resolver, $this->uow, $this),
-            MorphOne::class      => new MorphOnePopulator($this->resolver, $this->uow, $this),
-            MorphMany::class     => new MorphManyPopulator($this->resolver, $this->uow, $this),
-            MorphToMany::class   => new MorphToManyPopulator($this->resolver, $this->uow, $this),
+            BelongsTo::class => new BelongsToPopulator($this->resolver, $this->uow, $this),
+            HasOne::class => new HasOnePopulator($this->resolver, $this->uow, $this),
+            MorphOne::class => new MorphOnePopulator($this->resolver, $this->uow, $this),
+            MorphMany::class => new MorphManyPopulator($this->resolver, $this->uow, $this),
+            MorphToMany::class => new MorphToManyPopulator($this->resolver, $this->uow, $this),
         ];
     }
 
     private function extractRelation(Model $model, string $relationName): Relation
     {
         return call_user_func([$model, $relationName]);
+    }
+
+
+    public function clear()
+    {
+        $this->clear();
     }
 }

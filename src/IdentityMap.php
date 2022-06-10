@@ -90,4 +90,10 @@ class IdentityMap extends Collection
     {
         return $this->trackedRelations[] = $key;
     }
+
+    public function clear()
+    {
+        $this->trackedRelations = [];
+        $this->items = [];
+    }
 }
