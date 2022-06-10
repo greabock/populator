@@ -170,6 +170,6 @@ class Populator
 
     public function clear()
     {
-        $this->clear();
+        $this->uow->clear();
     }
 }
